@@ -19,6 +19,8 @@ package chess
 		public static var FLAG_HORIZONTAL:uint 		= 1;
 		public static var FLAG_UPRIGHT:uint 		= 2;
 		public static var FLAG_UPLEFT:uint 			= 3;
+		
+		public static var REMOVE_COUNTS:uint		= 5;
 		public function ChessDefine() 
 		{
 			

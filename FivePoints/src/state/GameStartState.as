@@ -43,6 +43,8 @@ package state
 		
 		private var _currentChess:ChessPoint = null;
 		
+		private var _flagArray:Array = new Array();
+		
 		public function GameStartState() 
 		{
 			
@@ -51,6 +53,11 @@ package state
 		override public function create():void
 		{
 			super.create();
+			
+			_flagArray.push( ChessDefine.FLAG_VERTICAL );
+			_flagArray.push( ChessDefine.FLAG_HORIZONTAL );
+			_flagArray.push( ChessDefine.FLAG_UPRIGHT );
+			_flagArray.push( ChessDefine.FLAG_UPLEFT );
 
 			ChessPoint.chessWidth = _chessWidth;
 			ChessPoint.chessHeight = _chessHeight;
@@ -81,10 +88,29 @@ package state
 			this.add( _cursor );
 			
 			random3Chesses();
-			
-			var newChess:ChessPoint = _chessArray[0][8];
-			var counts:uint = newChess.selfSameColorByFlag( ChessDefine.FLAG_HORIZONTAL );
 			var endBool:Boolean = false;
+		}
+		public function removeFlag( flag:uint, startChess:ChessPoint ):void
+		{
+			startChess.removeChessAndSelfByDirection( flag );
+		}
+		public function getRemovableFlag( findChess:ChessPoint ):int
+		{
+			var currentCounts:uint = 0;
+			var currentFlag:int = -1;
+			if ( findChess )
+			{
+				for each( var flag:uint in _flagArray )
+				{
+					var flagCounts:uint = findChess.selfSameColorByFlag( flag );
+					if ( flagCounts >= ChessDefine.REMOVE_COUNTS && flagCounts > currentCounts )
+					{
+						currentCounts = flagCounts;
+						currentFlag = flag;
+					}
+				}	
+			}
+			return currentFlag;
 		}
 		private function updateText( text:String ):void
 		{
@@ -100,9 +126,16 @@ package state
 					var chessPoints:ChessPoint = createChessOnIndex( bgColIndex, bgRowIndex);
 					rowArray.push( chessPoints );
 					_chessAllArray.push ( chessPoints );
-					if ( bgRowIndex == 0 )
+					if ( false )
 					{
-						chessPoints.setChessExist( true );
+						if ( bgColIndex == 8 )
+						{
+							chessPoints.setChessExist( false );
+						}
+						else
+						{
+							chessPoints.setChessExist( true );
+						}
 					}
 					else
 					{
@@ -161,6 +194,7 @@ package state
 					removeChessFromArray( randomChess, findArrayChess );	
 					randomChess.setChessExist( true );
 					var randomColor:uint = randomChessColor();
+					//randomColor = 0;
 					randomChess.setChessColor ( randomColor );
 				}
 			}
@@ -238,7 +272,17 @@ package state
 						_currentChess.setChessExist( false );
 						_findChess.setChessExist( true );
 						_findChess.setChessColor ( _currentChess.getChessColor() );
-						random3Chesses();
+			
+						
+						var flag:int = getRemovableFlag( _findChess );
+						if ( flag >= ChessDefine.FLAG_VERTICAL )
+						{
+							removeFlag( flag, _findChess );
+						}
+						else
+						{
+							random3Chesses();	
+						}
 					}
 					else
 					{
