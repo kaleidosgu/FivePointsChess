@@ -87,7 +87,7 @@ package state
 			_cursor.y = FlxG.height / 2;
 			this.add( _cursor );
 			
-			random3Chesses();
+			//random3Chesses();
 			var endBool:Boolean = false;
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
@@ -126,21 +126,7 @@ package state
 					var chessPoints:ChessPoint = createChessOnIndex( bgColIndex, bgRowIndex);
 					rowArray.push( chessPoints );
 					_chessAllArray.push ( chessPoints );
-					if ( false )
-					{
-						if ( bgColIndex == 8 )
-						{
-							chessPoints.setChessExist( false );
-						}
-						else
-						{
-							chessPoints.setChessExist( true );
-						}
-					}
-					else
-					{
-						chessPoints.setChessExist( false );
-					}
+					chessPoints.setChessExist( false );
 				}
 				_chessArray.push(rowArray);
 			}
@@ -149,7 +135,9 @@ package state
 			{
 				findChess.setChessDirectionChess( _chessArray );
 			}
-			
+			_chessArray[0][0].setChessExist( true );
+			_chessArray[0][1].setChessExist( true );
+			_chessArray[1][1].setChessExist( true );
 			var endFun:Boolean = false;
 		}
 		private function findChessOnIndex( indexX:int, indexY:int ):ChessPoint
@@ -243,14 +231,24 @@ package state
 					{
 						var indexChessX:int =  mousePoint.x / _backGroundWidth;
 						var indexChessY:int =  mousePoint.y / _backGroundHeight;
-						mouseHasBeenClick( indexChessX, indexChessY );
+						mouseClickAction( indexChessX, indexChessY );	
 						break;
 					}
 				}
 			}
 		}
+		private function requireChessMoveTo( dstChess:ChessPoint ):Boolean
+		{
+			var counts:uint = 0;
+			if ( _currentChess )
+			{
+				counts = _currentChess.getSteps( dstChess );
+			}
+			var canMoveTo:Boolean = counts > 0;
+			return canMoveTo;
+		}
 		
-		private function mouseHasBeenClick( indexX:int, indexY:int ):void
+		private function mouseClickAction( indexX:int, indexY:int ):void
 		{
 			var _findChess:ChessPoint = findChessOnIndex( indexX, indexY );
 			if ( _findChess  )
@@ -269,19 +267,25 @@ package state
 				{
 					if ( _currentChess )
 					{
-						_currentChess.setChessExist( false );
-						_findChess.setChessExist( true );
-						_findChess.setChessColor ( _currentChess.getChessColor() );
-			
+						var canChessMoveTo:Boolean = false;
+						canChessMoveTo = requireChessMoveTo( _findChess );
 						
-						var flag:int = getRemovableFlag( _findChess );
-						if ( flag >= ChessDefine.FLAG_VERTICAL )
+						initAllChessObjDirection();
+						if ( canChessMoveTo )
 						{
-							removeFlag( flag, _findChess );
-						}
-						else
-						{
-							random3Chesses();	
+							_currentChess.setChessExist( false );
+							_findChess.setChessExist( true );
+							_findChess.setChessColor ( _currentChess.getChessColor() );
+				
+							var flag:int = getRemovableFlag( _findChess );
+							if ( flag >= ChessDefine.FLAG_VERTICAL )
+							{
+								removeFlag( flag, _findChess );
+							}
+							else
+							{
+								random3Chesses();	
+							}
 						}
 					}
 					else
@@ -290,7 +294,13 @@ package state
 				}
 			}
 		}
-		
+		private function initAllChessObjDirection():void
+		{
+			for each( var loopChess:ChessPoint in _chessAllArray )
+			{
+				loopChess.initObjectDirection();
+			}
+		}
 		override public function update():void
 		{
 			super.update();

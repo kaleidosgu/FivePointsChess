@@ -16,10 +16,12 @@ package chess
 		private var _originalPosY:Number = 0;
 		private var _currentIndexX:uint = 0;
 		private var _currentIndexY:uint = 0;
+		private var objectDirectionCantMove:Object = new Object();
 		
 		private var _objectDirection:Object = new Object();
 		public function ChessPoint( indexX:uint, indexY:uint, chessType:uint ) 
 		{
+			initObjectDirection();
 			var posX:Number = indexX * ( chessWidth + 2 );
 			var posY:Number = indexY * ( chessHeight + 2 );
 			_originalPosX = posX;
@@ -268,6 +270,181 @@ package chess
 					SetChessWithDirection( direction, westChess );	
 				}
 			}
+		}
+		
+		public function canMoveTo( direction:uint ):Boolean
+		{
+			var bCanMoveTo:Boolean = false;
+			var directionChess:ChessPoint = GetChessWithDirection( direction );
+			if ( directionChess != null && !directionChess.isChessExist() )
+			{
+				bCanMoveTo = true;
+			}
+			return bCanMoveTo;
+		}
+		public function getSteps( dstChessPoint:ChessPoint ):uint
+		{
+			var indexX:uint = dstChessPoint._currentIndexX;
+			var indexY:uint = dstChessPoint._currentIndexY;
+			var stepsCounts:uint = 0;
+			var mainDirection:int = getMainDirect( indexX, indexY );
+			if ( mainDirection >= ChessDefine.DIRECTION_NORTH )
+			{
+				var canMoveChess:ChessPoint = _getCanMoveChessByDirection( mainDirection );
+				if ( canMoveChess == null )
+				{
+					objectDirectionCantMove[mainDirection] = false;
+					for ( var keyObj:Object in objectDirectionCantMove )
+					{
+						var keyDirection:uint = keyObj as uint;
+						if ( mainDirection != keyDirection )
+						{
+							var canMove:Boolean = objectDirectionCantMove[keyDirection];
+							if ( canMove )
+							{
+								var directionChess:ChessPoint = _getCanMoveChessByDirection( keyDirection );
+								if ( directionChess )
+								{
+									trace("x = " + directionChess._currentIndexX );
+									trace("y = " + directionChess._currentIndexY );
+									trace("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+									trace("x = " + this._currentIndexX );
+									trace("y = " + this._currentIndexY );
+									trace("#####################################");
+									stepsCounts = directionChess.canMoveChessContinue( keyDirection, dstChessPoint );
+								}
+								else
+								{
+									objectDirectionCantMove[keyDirection] = false;
+								}
+							}
+							else
+							{
+								objectDirectionCantMove[keyDirection] = false;
+							}	
+						}
+					}
+				}
+				else
+				{
+					stepsCounts = canMoveChess.canMoveChessContinue( mainDirection,dstChessPoint );	
+					
+					trace("x = " + canMoveChess._currentIndexX );
+					trace("y = " + canMoveChess._currentIndexY );
+				}
+			}
+			return stepsCounts;
+		}
+		private function _getCanMoveChessByDirection( direction:uint ):ChessPoint
+		{
+			var directionChess:ChessPoint = GetChessWithDirection( direction );
+			if ( directionChess != null && !directionChess.isChessExist() )
+			{
+				return directionChess;
+			}
+			return null;
+		}
+		public function canMoveChessContinue( toDirection:uint, dstChessPoint:ChessPoint ):uint
+		{
+			var oppDirection:uint = GlobalDirection.getIns().getOppositeDirection( toDirection );
+			objectDirectionCantMove[oppDirection] = false;
+			var stepsCounts:uint = 0;
+			if ( this == dstChessPoint )
+			{
+				stepsCounts = 1;
+			}
+			else
+			{
+				stepsCounts = this.getSteps( dstChessPoint );
+				if ( stepsCounts > 0 )
+				{
+					stepsCounts++;
+				}
+			}
+			return stepsCounts;
+		}
+		private function getMainDirect( indexX:int, indexY:int ):int
+		{
+			var indexXDiff:int = _currentIndexX - indexX;
+			var indexYDiff:int = _currentIndexY - indexY;
+			var indexXDiffAbs:int = indexXDiff >= 0 ? indexXDiff : 0 - indexXDiff
+			var indexYDiffAbs:int = indexYDiff >= 0 ? indexYDiff : 0 - indexYDiff
+			var mainDirectionX:int = getMainDirectionX( indexXDiff );
+			var mainDirectionY:int = getMainDirectionY( indexYDiff );
+			
+			var mainDirection:int = -1;
+			if ( indexXDiffAbs < indexYDiffAbs )
+			{
+				if ( indexXDiffAbs != 0 )
+				{
+					mainDirection = mainDirectionX;
+				}
+				else
+				{
+					mainDirection = mainDirectionY;
+				}
+			}
+			else if ( indexXDiffAbs > indexYDiffAbs )
+			{
+				if ( indexYDiffAbs != 0 )
+				{
+					mainDirection = mainDirectionY;
+				}
+				else
+				{
+					mainDirection = mainDirectionX;
+				}
+			}
+			else
+			{
+				mainDirection = mainDirectionY;
+			}
+			return mainDirection;
+		}
+		private function getMainDirectionX( indexXDif:int ):int
+		{
+			var mainDirectionX:int = -1;
+			if ( indexXDif > 0 )
+			{
+				mainDirectionX = ChessDefine.DIRECTION_WEST;
+			}
+			else if ( indexXDif < 0 )
+			{
+				mainDirectionX = ChessDefine.DIRECTION_EAST;
+			}
+			return mainDirectionX;
+		}
+		
+		private function getMainDirectionY( indexYDiff:int ):int
+		{
+			var mainDirectionY:int = -1;
+			
+			if ( indexYDiff > 0 )
+			{
+				mainDirectionY = ChessDefine.DIRECTION_NORTH;
+			}
+			else if ( indexYDiff < 0 )
+			{
+				mainDirectionY = ChessDefine.DIRECTION_SOUTH;
+			}
+			return mainDirectionY;
+		}
+		
+		public function get originalPosX():Number 
+		{
+			return _originalPosX;
+		}
+		
+		public function get originalPosY():Number 
+		{
+			return _originalPosY;
+		}
+		public function initObjectDirection():void
+		{
+			objectDirectionCantMove[ChessDefine.DIRECTION_EAST] = true;
+			objectDirectionCantMove[ChessDefine.DIRECTION_NORTH] = true;
+			objectDirectionCantMove[ChessDefine.DIRECTION_WEST] = true;
+			objectDirectionCantMove[ChessDefine.DIRECTION_SOUTH] = true;
 		}
 	}
 
