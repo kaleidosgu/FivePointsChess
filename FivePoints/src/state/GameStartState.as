@@ -135,9 +135,10 @@ package state
 			{
 				findChess.setChessDirectionChess( _chessArray );
 			}
-			_chessArray[0][0].setChessExist( true );
-			_chessArray[0][1].setChessExist( true );
+			_chessArray[1][0].setChessExist( true );
 			_chessArray[1][1].setChessExist( true );
+			_chessArray[1][2].setChessExist( true );
+			_chessArray[1][3].setChessExist( true );
 			var endFun:Boolean = false;
 		}
 		private function findChessOnIndex( indexX:int, indexY:int ):ChessPoint

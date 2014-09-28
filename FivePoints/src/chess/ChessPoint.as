@@ -284,6 +284,7 @@ package chess
 		}
 		public function getSteps( dstChessPoint:ChessPoint ):uint
 		{
+			this.x = this.x;
 			var indexX:uint = dstChessPoint._currentIndexX;
 			var indexY:uint = dstChessPoint._currentIndexY;
 			var stepsCounts:uint = 0;
@@ -311,6 +312,8 @@ package chess
 									trace("x = " + this._currentIndexX );
 									trace("y = " + this._currentIndexY );
 									trace("#####################################");
+									this.x;
+									objectDirectionCantMove[keyDirection] = false;
 									stepsCounts = directionChess.canMoveChessContinue( keyDirection, dstChessPoint );
 								}
 								else
@@ -338,7 +341,8 @@ package chess
 		private function _getCanMoveChessByDirection( direction:uint ):ChessPoint
 		{
 			var directionChess:ChessPoint = GetChessWithDirection( direction );
-			if ( directionChess != null && !directionChess.isChessExist() )
+			var canMove:Boolean = objectDirectionCantMove[direction];
+			if ( directionChess != null && !directionChess.isChessExist() && canMove )
 			{
 				return directionChess;
 			}
@@ -441,10 +445,14 @@ package chess
 		}
 		public function initObjectDirection():void
 		{
-			objectDirectionCantMove[ChessDefine.DIRECTION_EAST] = true;
-			objectDirectionCantMove[ChessDefine.DIRECTION_NORTH] = true;
-			objectDirectionCantMove[ChessDefine.DIRECTION_WEST] = true;
-			objectDirectionCantMove[ChessDefine.DIRECTION_SOUTH] = true;
+			var northValue:Boolean = _objectDirection[ChessDefine.DIRECTION_NORTH] != null;
+			var southValue:Boolean = _objectDirection[ChessDefine.DIRECTION_SOUTH] != null;
+			var eastValue:Boolean = _objectDirection[ChessDefine.DIRECTION_EAST] != null;
+			var westValue:Boolean = _objectDirection[ChessDefine.DIRECTION_WEST] != null;
+			objectDirectionCantMove[ChessDefine.DIRECTION_EAST] = eastValue;
+			objectDirectionCantMove[ChessDefine.DIRECTION_NORTH] = northValue;
+			objectDirectionCantMove[ChessDefine.DIRECTION_WEST] = westValue;
+			objectDirectionCantMove[ChessDefine.DIRECTION_SOUTH] = southValue;
 		}
 	}
 
