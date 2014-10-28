@@ -314,6 +314,10 @@ package chess
 									this.x;
 									objectDirectionCanMove[keyDirection] = false;
 									stepsCounts = directionChess.canMoveChessContinue( keyDirection, dstChessPoint );
+									if ( stepsCounts > 0 )
+									{
+										break;
+									}
 								}
 								else
 								{
