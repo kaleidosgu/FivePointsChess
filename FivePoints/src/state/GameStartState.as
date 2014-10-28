@@ -49,6 +49,8 @@ package state
 		private var _tickConstNumber:Number = 0.05;
 		private var _tickNumber:Number = 0;
 		
+		private var _removeCounts:uint = 0;
+		
 		public function GameStartState() 
 		{
 			
@@ -80,7 +82,7 @@ package state
 				}
 			}
 
-			_textNotify = new FlxText( 0, 300, 200, "Press J to save data." );
+			_textNotify = new FlxText( 0, 300, 200, "Score is: 0" );
 			add( _textNotify );
 			
 			buildChessArray();
@@ -97,7 +99,9 @@ package state
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
 		{
-			startChess.removeChessAndSelfByDirection( flag );
+			var rmvCounts:uint = startChess.removeChessAndSelfByDirection( flag );
+			_removeCounts = _removeCounts + rmvCounts;
+			_textNotify.text = "Score is: " + _removeCounts ;
 		}
 		public function getRemovableFlag( findChess:ChessPoint ):int
 		{
