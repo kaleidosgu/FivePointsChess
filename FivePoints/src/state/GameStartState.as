@@ -87,7 +87,7 @@ package state
 			_cursor.y = FlxG.height / 2;
 			this.add( _cursor );
 			
-			//random3Chesses();
+			random3Chesses();
 			var endBool:Boolean = false;
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
@@ -139,10 +139,12 @@ package state
 			{
 				findRestChess.initObjectDirection();
 			}
+			/*
+			_chessArray[0][0].setChessExist( true );
 			_chessArray[1][0].setChessExist( true );
-			_chessArray[1][1].setChessExist( true );
-			_chessArray[1][2].setChessExist( true );
-			_chessArray[1][3].setChessExist( true );
+			_chessArray[2][0].setChessExist( true );
+			_chessArray[3][0].setChessExist( true );
+			*/
 			var endFun:Boolean = false;
 		}
 		private function findChessOnIndex( indexX:int, indexY:int ):ChessPoint

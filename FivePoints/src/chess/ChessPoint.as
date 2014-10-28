@@ -21,7 +21,6 @@ package chess
 		private var _objectDirection:Object = new Object();
 		public function ChessPoint( indexX:uint, indexY:uint, chessType:uint ) 
 		{
-			//initObjectDirection();
 			var posX:Number = indexX * ( chessWidth + 2 );
 			var posY:Number = indexY * ( chessHeight + 2 );
 			_originalPosX = posX;
@@ -305,13 +304,6 @@ package chess
 								var directionChess:ChessPoint = _getCanMoveChessByDirection( keyDirection );
 								if ( directionChess )
 								{
-									trace("x = " + directionChess._currentIndexX );
-									trace("y = " + directionChess._currentIndexY );
-									trace("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
-									trace("x = " + this._currentIndexX );
-									trace("y = " + this._currentIndexY );
-									trace("#####################################");
-									this.x;
 									objectDirectionCanMove[keyDirection] = false;
 									stepsCounts = directionChess.canMoveChessContinue( keyDirection, dstChessPoint );
 									if ( stepsCounts > 0 )
@@ -334,9 +326,6 @@ package chess
 				else
 				{
 					stepsCounts = canMoveChess.canMoveChessContinue( mainDirection,dstChessPoint );	
-					
-					trace("x = " + canMoveChess._currentIndexX );
-					trace("y = " + canMoveChess._currentIndexY );
 				}
 			}
 			return stepsCounts;
