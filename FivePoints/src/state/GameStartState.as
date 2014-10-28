@@ -92,7 +92,7 @@ package state
 			this.add( _cursor );
 			
 			//todo
-			//random3Chesses();
+			random3Chesses();
 			var endBool:Boolean = false;
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
@@ -141,7 +141,7 @@ package state
 				findChess.setChessDirectionChess( _chessArray );
 			}
 			initAllChessObjDirection();
-			_chessArray[0][0].setChessExist( true );
+			//_chessArray[0][0].setChessExist( true );
 			/*
 			_chessArray[0][0].setChessExist( true );
 			_chessArray[0][1].setChessExist( true );
@@ -313,10 +313,26 @@ package state
 			var arrayLength:uint = GlobalChessStepProcessing.getIns().arrayProcessChess.length;
 			if ( arrayLength > 0 )
 			{
+				_currentChess.setChessExist( false );
 				if ( _tickNumber >= _tickConstNumber )
 				{
 					_tickNumber -= _tickConstNumber;
-					GlobalChessStepProcessing.getIns().removeLastChess();
+					var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
+					if ( _findChess && arrayLength == 1 )
+					{
+						_findChess.setChessColor ( _currentChess.getChessColor() );
+			
+						var flag:int = getRemovableFlag( _findChess );
+						if ( flag >= ChessDefine.FLAG_VERTICAL )
+						{
+							removeFlag( flag, _findChess );
+						}
+						else
+						{
+							random3Chesses();	
+						}
+						_currentChess = null;
+					}
 				}
 				_tickNumber += FlxG.elapsed;	
 			}

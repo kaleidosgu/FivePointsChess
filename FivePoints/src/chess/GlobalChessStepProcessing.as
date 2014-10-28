@@ -14,8 +14,9 @@ package chess
 		{
 			_arrayProcessChess = new Array();
 		}
-		public function removeLastChess( ):void
+		public function removeLastChess( color:uint ):ChessPoint
 		{
+			var removeChess:ChessPoint = null;
 			if ( _arrayProcessChess.length > 0 )
 			{
 				if ( _lastChess != null )
@@ -24,8 +25,10 @@ package chess
 				}
 				var chessFind:ChessPoint = _arrayProcessChess[_arrayProcessChess.length - 1 ];
 				chessFind.setChessExist( true );
+				chessFind.setChessColor ( color );
 				_lastChess = chessFind;
 				var indexChess:uint = 0;
+				removeChess = chessFind;
 				for each( var chessIn:ChessPoint in _arrayProcessChess )
 				{
 					if ( chessIn == chessFind )
@@ -36,6 +39,7 @@ package chess
 					indexChess++;
 				}
 			}
+			return removeChess;
 		}
 		
 		public static function getIns():GlobalChessStepProcessing
