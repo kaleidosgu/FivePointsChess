@@ -135,6 +135,10 @@ package state
 			{
 				findChess.setChessDirectionChess( _chessArray );
 			}
+			for each( var findRestChess:ChessPoint in _chessAllArray )
+			{
+				findRestChess.initObjectDirection();
+			}
 			_chessArray[1][0].setChessExist( true );
 			_chessArray[1][1].setChessExist( true );
 			_chessArray[1][2].setChessExist( true );
