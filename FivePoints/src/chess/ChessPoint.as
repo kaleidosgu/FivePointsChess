@@ -209,21 +209,6 @@ package chess
 		{
 			setChessByRowIndex( chessArray );
 		}
-		private function setUpObject( rowArray:Array, UP:Boolean ):void
-		{
-			if ( UP )
-			{
-				setChessByColIndex( _currentIndexX , ChessDefine.DIRECTION_NORTH, rowArray );
-				setChessByColIndex( _currentIndexX - 1, ChessDefine.DIRECTION_NORTH_WEST, rowArray );
-				setChessByColIndex( _currentIndexX + 1, ChessDefine.DIRECTION_NORTH_EAST, rowArray );	
-			}
-			else
-			{
-				setChessByColIndex( _currentIndexX , ChessDefine.DIRECTION_SOUTH, rowArray );
-				setChessByColIndex( _currentIndexX - 1, ChessDefine.DIRECTION_SOUTH_WEST, rowArray );
-				setChessByColIndex( _currentIndexX + 1, ChessDefine.DIRECTION_SOUTH_EAST, rowArray );	
-			}
-		}
 		private function setChessByRowIndex( chessArray:Array ):void
 		{
 			var currentRow:Array = null;
@@ -348,12 +333,14 @@ package chess
 			if ( this == dstChessPoint )
 			{
 				stepsCounts = 1;
+				GlobalChessStepProcessing.getIns().addChess( dstChessPoint );
 			}
 			else
 			{
 				stepsCounts = this.getSteps( dstChessPoint );
 				if ( stepsCounts > 0 )
 				{
+					GlobalChessStepProcessing.getIns().addChess( this );
 					stepsCounts++;
 				}
 			}

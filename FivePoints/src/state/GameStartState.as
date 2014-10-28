@@ -2,6 +2,7 @@ package state
 {
 	import chess.ChessPoint;
 	import chess.ChessDefine;
+	import chess.GlobalChessStepProcessing;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import org.flixel.FlxSprite;
@@ -45,6 +46,9 @@ package state
 		
 		private var _flagArray:Array = new Array();
 		
+		private var _tickConstNumber:Number = 0.05;
+		private var _tickNumber:Number = 0;
+		
 		public function GameStartState() 
 		{
 			
@@ -87,7 +91,8 @@ package state
 			_cursor.y = FlxG.height / 2;
 			this.add( _cursor );
 			
-			random3Chesses();
+			//todo
+			//random3Chesses();
 			var endBool:Boolean = false;
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
@@ -135,15 +140,13 @@ package state
 			{
 				findChess.setChessDirectionChess( _chessArray );
 			}
-			for each( var findRestChess:ChessPoint in _chessAllArray )
-			{
-				findRestChess.initObjectDirection();
-			}
+			initAllChessObjDirection();
+			_chessArray[0][0].setChessExist( true );
 			/*
 			_chessArray[0][0].setChessExist( true );
-			_chessArray[1][0].setChessExist( true );
-			_chessArray[2][0].setChessExist( true );
-			_chessArray[3][0].setChessExist( true );
+			_chessArray[0][1].setChessExist( true );
+			_chessArray[0][2].setChessExist( true );
+			_chessArray[0][3].setChessExist( true );
 			*/
 			var endFun:Boolean = false;
 		}
@@ -247,6 +250,7 @@ package state
 		private function requireChessMoveTo( dstChess:ChessPoint ):Boolean
 		{
 			var counts:uint = 0;
+			GlobalChessStepProcessing.getIns().clear();
 			if ( _currentChess )
 			{
 				counts = _currentChess.getSteps( dstChess );
@@ -278,8 +282,10 @@ package state
 						canChessMoveTo = requireChessMoveTo( _findChess );
 						
 						initAllChessObjDirection();
+						//todo
 						if ( canChessMoveTo )
 						{
+							/*
 							_currentChess.setChessExist( false );
 							_findChess.setChessExist( true );
 							_findChess.setChessColor ( _currentChess.getChessColor() );
@@ -293,12 +299,26 @@ package state
 							{
 								random3Chesses();	
 							}
+							*/
 						}
 					}
 					else
 					{
 					}
 				}
+			}
+		}
+		private function replayStepProcessing():void
+		{
+			var arrayLength:uint = GlobalChessStepProcessing.getIns().arrayProcessChess.length;
+			if ( arrayLength > 0 )
+			{
+				if ( _tickNumber >= _tickConstNumber )
+				{
+					_tickNumber -= _tickConstNumber;
+					GlobalChessStepProcessing.getIns().removeLastChess();
+				}
+				_tickNumber += FlxG.elapsed;	
 			}
 		}
 		private function initAllChessObjDirection():void
@@ -314,6 +334,7 @@ package state
 			_cursor.x = FlxG.mouse.x - _mouseDiffX;
 			_cursor.y = FlxG.mouse.y - _mouseDiffY;
 			checkMousePress();
+			replayStepProcessing();
 		}
 		
 		override public function destroy():void
