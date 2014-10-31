@@ -29,6 +29,7 @@ package state
 		public static var ChessPointsFlag_Red:int = 3;
 		public static var ChessPointsFlag_Yellow:int = 4;
 		
+		public static var RANDOM_CHESS_COUNTS:uint = 3;
 		
 		private var _chessWidth:uint = 28;
 		private var _chessHeight:uint = 28;
@@ -38,6 +39,7 @@ package state
 		private var _mouseDiffX:Number = 5;
 		private var _mouseDiffY:Number = 5;
 		private var _textNotify:FlxText = null;
+		private var _textGameOver:FlxText = null;
 		
 		private var _colLength:uint = 9;
 		private var _rowLength:uint = 9;
@@ -50,6 +52,8 @@ package state
 		private var _tickNumber:Number = 0;
 		
 		private var _removeCounts:uint = 0;
+		
+		private var _gaming:Boolean = true;
 		
 		public function GameStartState() 
 		{
@@ -83,6 +87,11 @@ package state
 			}
 
 			_textNotify = new FlxText( 0, 300, 200, "Score is: 0" );
+			_textGameOver = new FlxText( 80, 100, 200, "Game is Over" );
+			_textGameOver.size = 24;
+			_textGameOver.color = 0xff0000;
+			_textGameOver.visible = false;
+			add( _textGameOver );
 			add( _textNotify );
 			
 			buildChessArray();
@@ -95,6 +104,7 @@ package state
 			
 			//todo
 			random3Chesses();
+			//_gaming = false;
 			var endBool:Boolean = false;
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
@@ -175,7 +185,7 @@ package state
 			}
 			return findChess;
 		}
-		private function random3Chesses( ):void
+		private function random3Chesses( ):uint
 		{
 			var findArrayChess:Array = new Array();
 			for each( var findChess:ChessPoint in _chessAllArray )
@@ -188,7 +198,7 @@ package state
 				{
 				}
 			}
-			for ( var randomIndex:uint = 0; randomIndex < 3; randomIndex++ )
+			for ( var randomIndex:uint = 0; randomIndex < RANDOM_CHESS_COUNTS; randomIndex++ )
 			{
 				var randomChess:ChessPoint = getRandomChessFromArray( findArrayChess );
 				if ( randomChess )
@@ -196,10 +206,10 @@ package state
 					removeChessFromArray( randomChess, findArrayChess );	
 					randomChess.setChessExist( true );
 					var randomColor:uint = randomChessColor();
-					//randomColor = 0;
 					randomChess.setChessColor ( randomColor );
 				}
 			}
+			return findArrayChess.length;
 		}
 		private function randomChessColor():uint
 		{
@@ -333,7 +343,11 @@ package state
 						}
 						else
 						{
-							random3Chesses();	
+							var randomRest:uint = random3Chesses();	
+							if ( randomRest <= RANDOM_CHESS_COUNTS )
+							{
+								_gaming = false;
+							}
 						}
 						_currentChess = null;
 					}
@@ -353,8 +367,21 @@ package state
 			super.update();
 			_cursor.x = FlxG.mouse.x - _mouseDiffX;
 			_cursor.y = FlxG.mouse.y - _mouseDiffY;
-			checkMousePress();
-			replayStepProcessing();
+			if ( _gaming == false )
+			{
+				if(FlxG.keys.justReleased("SPACE"))
+				{
+					_gaming = true;
+					_textGameOver.visible = false;
+					buildChessArray();
+					random3Chesses();
+				}
+			}
+			else
+			{
+				checkMousePress();
+				replayStepProcessing();	
+			}
 		}
 		
 		override public function destroy():void
