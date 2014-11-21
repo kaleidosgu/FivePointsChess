@@ -271,46 +271,106 @@ package chess
 			var indexX:uint = dstChessPoint._currentIndexX;
 			var indexY:uint = dstChessPoint._currentIndexY;
 			var stepsCounts:uint = 0;
-			var mainDirection:int = getMainDirect( indexX, indexY );
+			this;
+			var arrayCanMoveDir:Array = new Array();
+			var mainDirection:int = getMainDirect( indexX, indexY,arrayCanMoveDir );
 			if ( mainDirection >= ChessDefine.DIRECTION_NORTH )
 			{
 				var canMoveChess:ChessPoint = _getCanMoveChessByDirection( mainDirection );
 				if ( canMoveChess == null )
 				{
 					objectDirectionCanMove[mainDirection] = false;
-					for ( var keyObj:Object in objectDirectionCanMove )
+					stepsCounts = _forEachCanMoveArray( arrayCanMoveDir,dstChessPoint );
+					if ( stepsCounts > 0 )
 					{
-						var keyDirection:uint = keyObj as uint;
-						if ( mainDirection != keyDirection )
+						
+					}
+					else
+					{
+						for ( var keyObj:Object in objectDirectionCanMove )
 						{
-							var canMove:Boolean = objectDirectionCanMove[keyDirection];
-							if ( canMove )
+							var keyDirection:uint = keyObj as uint;
+							var findMainDir:Boolean = false;
+							for each( var mainDir:int in arrayCanMoveDir )
 							{
-								var directionChess:ChessPoint = _getCanMoveChessByDirection( keyDirection );
-								if ( directionChess )
+								if ( mainDir == keyDirection )
 								{
-									objectDirectionCanMove[keyDirection] = false;
-									stepsCounts = directionChess.canMoveChessContinue( keyDirection, dstChessPoint );
-									if ( stepsCounts > 0 )
+									findMainDir = true;
+									break;
+								}
+							}
+							if ( !findMainDir )
+							{
+								var canMove:Boolean = objectDirectionCanMove[keyDirection];
+								if ( canMove )
+								{
+									var directionChess:ChessPoint = _getCanMoveChessByDirection( keyDirection );
+									if ( directionChess )
 									{
-										break;
+										objectDirectionCanMove[keyDirection] = false;
+										stepsCounts = directionChess.canMoveChessContinue( keyDirection, dstChessPoint );
+										if ( stepsCounts > 0 )
+										{
+											break;
+										}
+									}
+									else
+									{
+										objectDirectionCanMove[keyDirection] = false;
 									}
 								}
 								else
 								{
 									objectDirectionCanMove[keyDirection] = false;
-								}
+								}	
 							}
-							else
-							{
-								objectDirectionCanMove[keyDirection] = false;
-							}	
 						}
 					}
 				}
 				else
 				{
 					stepsCounts = canMoveChess.canMoveChessContinue( mainDirection,dstChessPoint );	
+				}
+			}
+			return stepsCounts;
+		}
+		private function _forEachCanMoveArray( arrayCanMoveDir:Array, dstChessPoint:ChessPoint ):int
+		{
+			var stepsCounts:int = 0;
+			for each ( var canMovDir:int in arrayCanMoveDir )
+			{
+				if ( canMovDir < 0 )
+				{
+					continue;
+				}
+				else
+				{
+					var keyDirection:uint = canMovDir;
+					//if ( mainDirection != keyDirection )
+					{
+						var canMove:Boolean = objectDirectionCanMove[keyDirection];
+						if ( canMove )
+						{
+							var directionChess:ChessPoint = _getCanMoveChessByDirection( keyDirection );
+							if ( directionChess )
+							{
+								objectDirectionCanMove[keyDirection] = false;
+								stepsCounts = directionChess.canMoveChessContinue( keyDirection, dstChessPoint );
+								if ( stepsCounts > 0 )
+								{
+									break;
+								}
+							}
+							else
+							{
+								objectDirectionCanMove[keyDirection] = false;
+							}
+						}
+						else
+						{
+							objectDirectionCanMove[keyDirection] = false;
+						}	
+					}
 				}
 			}
 			return stepsCounts;
@@ -346,7 +406,7 @@ package chess
 			}
 			return stepsCounts;
 		}
-		private function getMainDirect( indexX:int, indexY:int ):int
+		private function getMainDirect( indexX:int, indexY:int,arrayCanMoveDir:Array ):int
 		{
 			var indexXDiff:int = _currentIndexX - indexX;
 			var indexYDiff:int = _currentIndexY - indexY;
@@ -382,6 +442,8 @@ package chess
 			{
 				mainDirection = mainDirectionY;
 			}
+			arrayCanMoveDir.push( mainDirectionX );
+			arrayCanMoveDir.push( mainDirectionY );
 			return mainDirection;
 		}
 		private function getMainDirectionX( indexXDif:int ):int

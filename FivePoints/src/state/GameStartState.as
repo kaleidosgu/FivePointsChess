@@ -48,7 +48,7 @@ package state
 		
 		private var _flagArray:Array = new Array();
 		
-		private var _tickConstNumber:Number = 0.05;
+		private var _tickConstNumber:Number = 0.1;
 		private var _tickNumber:Number = 0;
 		
 		private var _removeCounts:uint = 0;
@@ -103,7 +103,7 @@ package state
 			this.add( _cursor );
 			
 			//todo
-			random3Chesses();
+			//random3Chesses();
 			//_gaming = false;
 			var endBool:Boolean = false;
 		}
@@ -156,12 +156,12 @@ package state
 			}
 			initAllChessObjDirection();
 			//_chessArray[0][0].setChessExist( true );
-			/*
-			_chessArray[0][0].setChessExist( true );
+			
+			_chessArray[1][0].setChessExist( true );
 			_chessArray[0][1].setChessExist( true );
-			_chessArray[0][2].setChessExist( true );
+			_chessArray[1][2].setChessExist( true );
 			_chessArray[0][3].setChessExist( true );
-			*/
+			
 			var endFun:Boolean = false;
 		}
 		private function findChessOnIndex( indexX:int, indexY:int ):ChessPoint
