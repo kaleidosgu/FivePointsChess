@@ -439,6 +439,16 @@ package chess
 		{
 			return _originalPosY;
 		}
+		
+		public function get currentIndexX():uint 
+		{
+			return _currentIndexX;
+		}
+		
+		public function get currentIndexY():uint 
+		{
+			return _currentIndexY;
+		}
 		public function initObjectDirection():void
 		{
 			objectDirectionCantMove[ChessDefine.DIRECTION_EAST] = true;

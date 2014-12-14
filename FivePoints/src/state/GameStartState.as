@@ -8,6 +8,7 @@ package state
 	import org.flixel.FlxState;
 	import org.flixel.FlxText;
 	import org.flixel.FlxG;
+	import chess.AStarData;
 	
 	/**
 	 * ...
@@ -22,11 +23,23 @@ package state
 		private var _chessArray:Array = new Array();
 		private var _chessAllArray:Array = new Array();
 		private var _cursor:FlxSprite = null;
+		
+		private var _AStarRepeatResult_Continue:uint = 0;
+		private var _AStarRepeatResult_NoPath:uint = 1;
+		private var _AStarRepeatResult_FindPath:uint = 2;
+		
+		public var G_VALUE_CHESS:uint = 10;
 		public static var ChessPointsFlag_Blue:int = 0;
 		public static var ChessPointsFlag_Cayon:int = 1;
 		public static var ChessPointsFlag_Green:int = 2;
 		public static var ChessPointsFlag_Red:int = 3;
 		public static var ChessPointsFlag_Yellow:int = 4;
+		
+		public var openListVector:Vector.< AStarData > = new Vector.< AStarData >;
+		public var closeListVector :Vector.< AStarData > = new Vector.< AStarData >;
+		
+		public var arrayOpen:Array = new Array();
+		public var arrayClose:Array = new Array();
 		
 		
 		private var _chessWidth:uint = 28;
@@ -44,6 +57,8 @@ package state
 		private var _currentChess:ChessPoint = null;
 		
 		private var _flagArray:Array = new Array();
+		
+		private var arrayPath:Array = new Array();
 		
 		public function GameStartState() 
 		{
@@ -248,6 +263,205 @@ package state
 			return canMoveTo;
 		}
 		
+		private function AStarAlg( currentChessPt:ChessPoint, targetChessPt:ChessPoint ):uint
+		{
+			arrayOpen.length = 0;
+			arrayClose.length = 0;
+			arrayPath.length = 0;
+			var startStart:AStarData = new AStarData();
+			startStart.chessPt = currentChessPt;
+			//openListVector.push( startStart );
+			arrayOpen.push ( startStart );
+			var res:uint = AStarRepeat( targetChessPt);
+			while ( res == _AStarRepeatResult_Continue )
+			{
+				res = AStarRepeat( targetChessPt);
+			}
+			return res;
+		}
+		private function switchChessToCloseList( starData:AStarData ):void
+		{
+			arrayClose.push ( starData );
+			var index:int = arrayOpen.indexOf( starData );
+			if ( index >= 0 )
+			{
+				arrayOpen.splice( index, 1 );
+			}
+		}
+		private function nearChessProcess( starData:AStarData, targetChessPt:ChessPoint ):AStarData
+		{
+			var newCurrentData:AStarData = null;
+			var currentChess:ChessPoint = starData.chessPt
+			if ( currentChess )
+			{
+				var eastChess:ChessPoint = currentChess.GetChessWithDirection( ChessDefine.DIRECTION_EAST );
+				var northChess:ChessPoint = currentChess.GetChessWithDirection( ChessDefine.DIRECTION_NORTH );
+				var southChess:ChessPoint = currentChess.GetChessWithDirection( ChessDefine.DIRECTION_SOUTH );
+				var westChess:ChessPoint = currentChess.GetChessWithDirection( ChessDefine.DIRECTION_WEST );
+				
+				var eastGValue:AStarData = eachNearChessProcess( eastChess, starData, targetChessPt );
+				var northGValue:AStarData = eachNearChessProcess( northChess, starData, targetChessPt );
+				var southGValue:AStarData = eachNearChessProcess( southChess, starData, targetChessPt );
+				var westGValue:AStarData = eachNearChessProcess( westChess, starData, targetChessPt );
+				
+				var vec:Vector.<AStarData> = new Vector.<AStarData>();
+				if ( eastGValue != null )
+				{
+					vec.push( eastGValue );
+				}
+				if ( northGValue != null )
+				{
+					vec.push( northGValue );
+				}
+				if ( southGValue != null )
+				{
+					vec.push( southGValue );
+				}
+				if ( westGValue != null )
+				{
+					vec.push( westGValue );
+				}
+				
+				vec.sort( sortFunc );
+				if ( vec )
+				{
+					if ( vec.length > 0 )
+					{
+						var foundStar:AStarData = vec[0];
+						newCurrentData = foundStar.parentStarData;
+						arrayPath.push( foundStar );
+					}
+				}
+			}
+			return newCurrentData;
+		}
+		private function findAStarDataInListByChessPt( chessFind:ChessPoint, listArray:Array ):AStarData
+		{
+			var res:AStarData = null;
+			for each( var starData:AStarData in listArray )
+			{
+				if ( starData.chessPt == chessFind )
+				{
+					res = starData;
+					break;
+				}
+			}
+			return res;
+		}
+		private function eachNearChessProcess( chessPt:ChessPoint, currentStarData:AStarData, targetChessPt:ChessPoint ):AStarData
+		{
+			var astrReturn:AStarData = null;
+			if ( chessPt )
+			{
+				if ( chessPt.isChessExist() )
+				{
+					//ignore it 
+				}
+				else
+				{
+					var foundInClose:AStarData = findAStarDataInListByChessPt( chessPt, arrayClose );
+					if ( foundInClose != null )
+					{
+						//ignore it 
+					}
+					else
+					{
+						var foundInOpen:AStarData = findAStarDataInListByChessPt( chessPt, arrayOpen );
+						if ( foundInOpen != null )
+						{
+							astrReturn = foundInOpen;
+						}
+						else
+						{
+							var newData:AStarData = new AStarData();
+							newData.chessPt = chessPt;
+							newData.parentStarData = currentStarData;
+							newData.value_G = currentStarData.value_G + G_VALUE_CHESS;
+							newData.value_H = caclHValue( chessPt, targetChessPt );
+							arrayOpen.push ( newData );
+						}
+					}
+				}
+			}
+			else 
+			{
+			}
+			return astrReturn;
+		}
+		private function caclHValue( currentChess:ChessPoint, targetChess:ChessPoint ):uint
+		{
+			var HValue:uint = 0;
+			if ( currentChess.currentIndexX >= targetChess.currentIndexX )
+			{
+				HValue += currentChess.currentIndexX - targetChess.currentIndexX;
+			}
+			else
+			{
+				HValue += targetChess.currentIndexX - currentChess.currentIndexX;
+			}
+			
+			if ( currentChess.currentIndexY >= targetChess.currentIndexY )
+			{
+				HValue += currentChess.currentIndexY - targetChess.currentIndexY;
+			}
+			else
+			{
+				HValue += targetChess.currentIndexY - currentChess.currentIndexY;
+			}
+			return HValue + 1;
+		}
+		private function AStarRepeat( targetChess:ChessPoint ):uint
+		{
+			var resRepeat:uint = _AStarRepeatResult_Continue;
+			var currentStarData:AStarData = findLeastAStarData();
+			if ( currentStarData )
+			{
+				if ( targetChess == currentStarData.chessPt )
+				{
+					resRepeat = _AStarRepeatResult_FindPath;
+				}
+				else
+				{
+					switchChessToCloseList( currentStarData );
+					nearChessProcess( currentStarData, targetChess );
+				}
+			}
+			else
+			{
+				resRepeat = _AStarRepeatResult_NoPath;
+			}
+			return resRepeat;
+		}
+		private function findLeastAStarData():AStarData
+		{
+			var vec:Vector.< AStarData > = new Vector.< AStarData >;
+			for each( var openElement:AStarData in arrayOpen )
+			{
+				vec.push( openElement );
+			}
+			vec.sort( sortFunc );
+			var find:AStarData = null;
+			if ( vec.length > 0 )
+			{
+				find = vec[0];
+			}
+			return find;
+		}
+		private function sortFunc( data1:AStarData, data2:AStarData ):int
+		{
+			if ( data1.value_F < data2.value_F )
+			{
+				return -1;
+			}
+			else if ( data1.value_F == data2.value_F )
+			{
+				return 0;
+			}
+			else
+			{
+				return 1;
+			}
+		}
 		private function mouseClickAction( indexX:int, indexY:int ):void
 		{
 			var _findChess:ChessPoint = findChessOnIndex( indexX, indexY );
@@ -267,6 +481,11 @@ package state
 				{
 					if ( _currentChess )
 					{
+						var res:uint = AStarAlg( _currentChess, _findChess );
+						if ( res == _AStarRepeatResult_FindPath )
+						{
+							//arrayPath
+						}
 						var canChessMoveTo:Boolean = false;
 						canChessMoveTo = requireChessMoveTo( _findChess );
 						
