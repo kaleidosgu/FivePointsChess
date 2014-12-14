@@ -172,9 +172,6 @@ package state
 			//_chessArray[0][0].setChessExist( true );
 			
 			_chessArray[1][0].setChessExist( true );
-			_chessArray[0][1].setChessExist( true );
-			_chessArray[1][2].setChessExist( true );
-			_chessArray[0][3].setChessExist( true );
 			
 			var endFun:Boolean = false;
 		}
@@ -507,7 +504,6 @@ package state
 					if ( _currentChess )
 					{
 						GlobalChessStepProcessing.getIns().clear();
-						GlobalChessStepProcessing.getIns().addChess( _currentChess );
 						var res:uint = AStarAlg( _currentChess, _findChess );
 						if ( res == _AStarRepeatResult_FindPath )
 						{
@@ -554,7 +550,9 @@ package state
 				if ( _tickNumber >= _tickConstNumber )
 				{
 					_tickNumber -= _tickConstNumber;
-					var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
+					//var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
+					var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeChessAStar(_currentChess.getChessColor());
+					
 					if ( _findChess && arrayLength == 1 )
 					{
 						_findChess.setChessColor ( _currentChess.getChessColor() );
@@ -566,11 +564,13 @@ package state
 						}
 						else
 						{
+							/*
 							var randomRest:uint = random3Chesses();	
 							if ( randomRest <= RANDOM_CHESS_COUNTS )
 							{
 								_gaming = false;
 							}
+							*/
 						}
 						_currentChess = null;
 					}

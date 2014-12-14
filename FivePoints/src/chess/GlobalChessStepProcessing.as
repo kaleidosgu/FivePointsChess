@@ -42,6 +42,26 @@ package chess
 			return removeChess;
 		}
 		
+		public function removeChessAStar( color:uint ):ChessPoint
+		{
+			var removeChess:ChessPoint = null;
+			if ( _arrayProcessChess.length > 0 )
+			{
+				if ( _lastChess != null )
+				{
+					_lastChess.setChessExist( false );
+				}
+				var chessFind:ChessPoint = _arrayProcessChess[ 0 ];
+				chessFind.setChessExist( true );
+				chessFind.setChessColor ( color );
+				_lastChess = chessFind;
+				var indexChess:uint = 0;
+				removeChess = chessFind;
+				_arrayProcessChess.splice( 0, 1 );
+			}
+			return removeChess;
+		}
+		
 		public static function getIns():GlobalChessStepProcessing
 		{
 			if ( _staticIns == null )
