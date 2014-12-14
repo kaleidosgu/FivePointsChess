@@ -2,6 +2,7 @@ package state
 {
 	import chess.ChessPoint;
 	import chess.ChessDefine;
+	import chess.GlobalChessStepProcessing;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
 	import org.flixel.FlxSprite;
@@ -41,6 +42,7 @@ package state
 		public var arrayOpen:Array = new Array();
 		public var arrayClose:Array = new Array();
 		
+		public static var RANDOM_CHESS_COUNTS:uint = 3;
 		
 		private var _chessWidth:uint = 28;
 		private var _chessHeight:uint = 28;
@@ -50,6 +52,7 @@ package state
 		private var _mouseDiffX:Number = 5;
 		private var _mouseDiffY:Number = 5;
 		private var _textNotify:FlxText = null;
+		private var _textGameOver:FlxText = null;
 		
 		private var _colLength:uint = 9;
 		private var _rowLength:uint = 9;
@@ -59,6 +62,12 @@ package state
 		private var _flagArray:Array = new Array();
 		
 		private var arrayPath:Array = new Array();
+		private var _tickConstNumber:Number = 0.1;
+		private var _tickNumber:Number = 0;
+		
+		private var _removeCounts:uint = 0;
+		
+		private var _gaming:Boolean = true;
 		
 		public function GameStartState() 
 		{
@@ -91,7 +100,12 @@ package state
 				}
 			}
 
-			_textNotify = new FlxText( 0, 300, 200, "Press J to save data." );
+			_textNotify = new FlxText( 0, 300, 200, "Score is: 0" );
+			_textGameOver = new FlxText( 80, 100, 200, "Game is Over" );
+			_textGameOver.size = 24;
+			_textGameOver.color = 0xff0000;
+			_textGameOver.visible = false;
+			add( _textGameOver );
 			add( _textNotify );
 			
 			buildChessArray();
@@ -102,12 +116,16 @@ package state
 			_cursor.y = FlxG.height / 2;
 			this.add( _cursor );
 			
+			//todo
 			//random3Chesses();
+			//_gaming = false;
 			var endBool:Boolean = false;
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
 		{
-			startChess.removeChessAndSelfByDirection( flag );
+			var rmvCounts:uint = startChess.removeChessAndSelfByDirection( flag );
+			_removeCounts = _removeCounts + rmvCounts;
+			_textNotify.text = "Score is: " + _removeCounts ;
 		}
 		public function getRemovableFlag( findChess:ChessPoint ):int
 		{
@@ -150,9 +168,14 @@ package state
 			{
 				findChess.setChessDirectionChess( _chessArray );
 			}
-			_chessArray[0][0].setChessExist( true );
+			initAllChessObjDirection();
+			//_chessArray[0][0].setChessExist( true );
+			
+			_chessArray[1][0].setChessExist( true );
 			_chessArray[0][1].setChessExist( true );
-			_chessArray[1][1].setChessExist( true );
+			_chessArray[1][2].setChessExist( true );
+			_chessArray[0][3].setChessExist( true );
+			
 			var endFun:Boolean = false;
 		}
 		private function findChessOnIndex( indexX:int, indexY:int ):ChessPoint
@@ -176,7 +199,7 @@ package state
 			}
 			return findChess;
 		}
-		private function random3Chesses( ):void
+		private function random3Chesses( ):uint
 		{
 			var findArrayChess:Array = new Array();
 			for each( var findChess:ChessPoint in _chessAllArray )
@@ -189,7 +212,7 @@ package state
 				{
 				}
 			}
-			for ( var randomIndex:uint = 0; randomIndex < 3; randomIndex++ )
+			for ( var randomIndex:uint = 0; randomIndex < RANDOM_CHESS_COUNTS; randomIndex++ )
 			{
 				var randomChess:ChessPoint = getRandomChessFromArray( findArrayChess );
 				if ( randomChess )
@@ -197,10 +220,10 @@ package state
 					removeChessFromArray( randomChess, findArrayChess );	
 					randomChess.setChessExist( true );
 					var randomColor:uint = randomChessColor();
-					//randomColor = 0;
 					randomChess.setChessColor ( randomColor );
 				}
 			}
+			return findArrayChess.length;
 		}
 		private function randomChessColor():uint
 		{
@@ -255,6 +278,7 @@ package state
 		private function requireChessMoveTo( dstChess:ChessPoint ):Boolean
 		{
 			var counts:uint = 0;
+			GlobalChessStepProcessing.getIns().clear();
 			if ( _currentChess )
 			{
 				counts = _currentChess.getSteps( dstChess );
@@ -329,7 +353,8 @@ package state
 					{
 						var foundStar:AStarData = vec[0];
 						newCurrentData = foundStar.parentStarData;
-						arrayPath.push( foundStar );
+						//arrayPath.push( foundStar );
+						GlobalChessStepProcessing.getIns().addChess( foundStar.chessPt );
 					}
 				}
 			}
@@ -481,17 +506,23 @@ package state
 				{
 					if ( _currentChess )
 					{
+						GlobalChessStepProcessing.getIns().clear();
+						GlobalChessStepProcessing.getIns().addChess( _currentChess );
 						var res:uint = AStarAlg( _currentChess, _findChess );
 						if ( res == _AStarRepeatResult_FindPath )
 						{
 							//arrayPath
+							GlobalChessStepProcessing.getIns().addChess( _findChess );
 						}
-						var canChessMoveTo:Boolean = false;
-						canChessMoveTo = requireChessMoveTo( _findChess );
+						//var canChessMoveTo:Boolean = false;
+						//canChessMoveTo = requireChessMoveTo( _findChess );
 						
+						var canChessMoveTo:Boolean = GlobalChessStepProcessing.getIns().arrayProcessChess.length > 1;
 						initAllChessObjDirection();
+						//todo
 						if ( canChessMoveTo )
 						{
+							/*
 							_currentChess.setChessExist( false );
 							_findChess.setChessExist( true );
 							_findChess.setChessColor ( _currentChess.getChessColor() );
@@ -505,12 +536,46 @@ package state
 							{
 								random3Chesses();	
 							}
+							*/
 						}
 					}
 					else
 					{
 					}
 				}
+			}
+		}
+		private function replayStepProcessing():void
+		{
+			var arrayLength:uint = GlobalChessStepProcessing.getIns().arrayProcessChess.length;
+			if ( arrayLength > 0 )
+			{
+				_currentChess.setChessExist( false );
+				if ( _tickNumber >= _tickConstNumber )
+				{
+					_tickNumber -= _tickConstNumber;
+					var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
+					if ( _findChess && arrayLength == 1 )
+					{
+						_findChess.setChessColor ( _currentChess.getChessColor() );
+			
+						var flag:int = getRemovableFlag( _findChess );
+						if ( flag >= ChessDefine.FLAG_VERTICAL )
+						{
+							removeFlag( flag, _findChess );
+						}
+						else
+						{
+							var randomRest:uint = random3Chesses();	
+							if ( randomRest <= RANDOM_CHESS_COUNTS )
+							{
+								_gaming = false;
+							}
+						}
+						_currentChess = null;
+					}
+				}
+				_tickNumber += FlxG.elapsed;	
 			}
 		}
 		private function initAllChessObjDirection():void
@@ -525,7 +590,21 @@ package state
 			super.update();
 			_cursor.x = FlxG.mouse.x - _mouseDiffX;
 			_cursor.y = FlxG.mouse.y - _mouseDiffY;
-			checkMousePress();
+			if ( _gaming == false )
+			{
+				if(FlxG.keys.justReleased("SPACE"))
+				{
+					_gaming = true;
+					_textGameOver.visible = false;
+					buildChessArray();
+					random3Chesses();
+				}
+			}
+			else
+			{
+				checkMousePress();
+				replayStepProcessing();	
+			}
 		}
 		
 		override public function destroy():void
