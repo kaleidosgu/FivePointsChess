@@ -117,7 +117,7 @@ package state
 			this.add( _cursor );
 			
 			//todo
-			//random3Chesses();
+			random3Chesses();
 			//_gaming = false;
 			var endBool:Boolean = false;
 		}
@@ -170,9 +170,14 @@ package state
 			}
 			initAllChessObjDirection();
 			//_chessArray[0][0].setChessExist( true );
-			
+			/*
 			_chessArray[0][0].setChessExist( true );
-			
+			_chessArray[0][1].setChessExist( true );
+			_chessArray[1][1].setChessExist( true );
+			_chessArray[2][1].setChessExist( true );
+			_chessArray[3][1].setChessExist( true );
+			_chessArray[4][1].setChessExist( true );
+			*/
 			var endFun:Boolean = false;
 		}
 		private function findChessOnIndex( indexX:int, indexY:int ):ChessPoint
@@ -308,7 +313,6 @@ package state
 						if ( res == AStarResult.ASTAR_RESULT_FindPath )
 						{
 							//arrayPath
-							GlobalChessStepProcessing.getIns().addChess( _findChess );
 						}
 						//var canChessMoveTo:Boolean = false;
 						//canChessMoveTo = requireChessMoveTo( _findChess );
@@ -331,12 +335,11 @@ package state
 			var arrayLength:uint = GlobalChessStepProcessing.getIns().arrayProcessChess.length;
 			if ( arrayLength > 0 )
 			{
-				_currentChess.setChessExist( false );
 				if ( _tickNumber >= _tickConstNumber )
 				{
 					_tickNumber -= _tickConstNumber;
 					//var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
-					var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeChessAStar(_currentChess.getChessColor());
+					var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
 					
 					if ( _findChess && arrayLength == 1 )
 					{
@@ -349,13 +352,13 @@ package state
 						}
 						else
 						{
-							/*
+							
 							var randomRest:uint = random3Chesses();	
 							if ( randomRest <= RANDOM_CHESS_COUNTS )
 							{
 								_gaming = false;
 							}
-							*/
+							
 						}
 						_currentChess = null;
 					}

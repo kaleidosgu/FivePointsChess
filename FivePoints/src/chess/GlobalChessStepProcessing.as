@@ -29,14 +29,10 @@ package chess
 				_lastChess = chessFind;
 				var indexChess:uint = 0;
 				removeChess = chessFind;
-				for each( var chessIn:ChessPoint in _arrayProcessChess )
+				var findIndex:int = -1;
+				while ( ( findIndex = _arrayProcessChess.indexOf( chessFind ) ) >= 0 )
 				{
-					if ( chessIn == chessFind )
-					{
-						_arrayProcessChess.splice( indexChess, 1 );
-						break;
-					}
-					indexChess++;
+					_arrayProcessChess.splice( findIndex, 1 );
 				}
 			}
 			return removeChess;

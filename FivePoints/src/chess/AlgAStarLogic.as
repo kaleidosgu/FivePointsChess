@@ -42,6 +42,20 @@ package chess
 				if ( targetChess == currentStarData.chessPt )
 				{
 					resRepeat = AStarResult.ASTAR_RESULT_FindPath;
+					
+					var lastAStarData:AStarData = currentStarData;
+					while ( true )
+					{
+						if ( lastAStarData != null && lastAStarData.chessPt != null )
+						{
+							GlobalChessStepProcessing.getIns().addChess( lastAStarData.chessPt );	
+						}
+						else
+						{
+							break;
+						}
+						lastAStarData = lastAStarData.parentStarData;
+					}
 				}
 				else
 				{
@@ -79,9 +93,8 @@ package chess
 				arrayOpen.splice( index, 1 );
 			}
 		}
-		private function nearChessProcess( starData:AStarData, targetChessPt:ChessPoint ):AStarData
+		private function nearChessProcess( starData:AStarData, targetChessPt:ChessPoint )
 		{
-			var newCurrentData:AStarData = null;
 			var currentChess:ChessPoint = starData.chessPt
 			if ( currentChess )
 			{
@@ -90,42 +103,11 @@ package chess
 				var southChess:ChessPoint = currentChess.GetChessWithDirection( ChessDefine.DIRECTION_SOUTH );
 				var westChess:ChessPoint = currentChess.GetChessWithDirection( ChessDefine.DIRECTION_WEST );
 				
-				var eastGValue:AStarData = eachNearChessProcess( eastChess, starData, targetChessPt );
-				var northGValue:AStarData = eachNearChessProcess( northChess, starData, targetChessPt );
-				var southGValue:AStarData = eachNearChessProcess( southChess, starData, targetChessPt );
-				var westGValue:AStarData = eachNearChessProcess( westChess, starData, targetChessPt );
-				
-				var vec:Vector.<AStarData> = new Vector.<AStarData>();
-				if ( eastGValue != null )
-				{
-					vec.push( eastGValue );
-				}
-				if ( northGValue != null )
-				{
-					vec.push( northGValue );
-				}
-				if ( southGValue != null )
-				{
-					vec.push( southGValue );
-				}
-				if ( westGValue != null )
-				{
-					vec.push( westGValue );
-				}
-				
-				vec.sort( sortFunc );
-				if ( vec )
-				{
-					if ( vec.length > 0 )
-					{
-						var foundStar:AStarData = vec[0];
-						newCurrentData = foundStar.parentStarData;
-						//arrayPath.push( foundStar );
-						GlobalChessStepProcessing.getIns().addChess( foundStar.chessPt );
-					}
-				}
+				eachNearChessProcess( eastChess, starData, targetChessPt );
+				eachNearChessProcess( northChess, starData, targetChessPt );
+				eachNearChessProcess( southChess, starData, targetChessPt );
+				eachNearChessProcess( westChess, starData, targetChessPt );
 			}
-			return newCurrentData;
 		}
 		
 		private function sortFunc( data1:AStarData, data2:AStarData ):int
@@ -143,9 +125,8 @@ package chess
 				return 1;
 			}
 		}
-		private function eachNearChessProcess( chessPt:ChessPoint, currentStarData:AStarData, targetChessPt:ChessPoint ):AStarData
+		private function eachNearChessProcess( chessPt:ChessPoint, currentStarData:AStarData, targetChessPt:ChessPoint ):void
 		{
-			var astrReturn:AStarData = null;
 			if ( chessPt )
 			{
 				if ( chessPt.isChessExist() )
@@ -164,9 +145,12 @@ package chess
 						var foundInOpen:AStarData = findAStarDataInListByChessPt( chessPt, arrayOpen );
 						if ( foundInOpen != null )
 						{
-							astrReturn = foundInOpen;
-							astrReturn.parentStarData.value_G = 0;
-							astrReturn.value_G = G_VALUE_CHESS + astrReturn.parentStarData.value_G;
+							var newGValue:uint = currentStarData.value_G + G_VALUE_CHESS;
+							if ( newGValue < foundInOpen.value_G )
+							{
+								foundInOpen.parentStarData = currentStarData;
+								foundInOpen.value_G = newGValue;
+							}
 						}
 						else
 						{
@@ -183,7 +167,6 @@ package chess
 			else 
 			{
 			}
-			return astrReturn;
 		}
 		private function caclHValue( currentChess:ChessPoint, targetChess:ChessPoint ):uint
 		{
