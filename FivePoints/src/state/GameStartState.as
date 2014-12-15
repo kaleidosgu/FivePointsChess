@@ -21,7 +21,7 @@ package state
 	{
 		[Embed(source = "../../res/points.png")] private static var pointsChessPic:Class;
 		[Embed(source = "../../res/back.png")] private static var bgChessPic:Class;
-		[Embed(source = "../../res/cursor.png")] private static var cursorPic:Class;
+		[Embed(source = "../../res/cursor_new.png")] private static var cursorPic:Class;
 		private var _backGroundArray:Array = new Array();
 		private var _chessArray:Array = new Array();
 		private var _chessAllArray:Array = new Array();
@@ -111,7 +111,7 @@ package state
 			buildChessArray();
 			
 			_cursor = new FlxSprite();
-			_cursor.loadGraphic( cursorPic, true, true, 9, 9 );
+			_cursor.loadGraphic( cursorPic, true, true );
 			_cursor.x = FlxG.width / 2;
 			_cursor.y = FlxG.height / 2;
 			this.add( _cursor );
