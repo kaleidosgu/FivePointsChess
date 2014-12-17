@@ -12,6 +12,7 @@ package state
 	import org.flixel.FlxG;
 	import chess.AStarData;
 	import chess.AStarResult;
+	import chess.ToolsDefine;
 	
 	/**
 	 * ...
@@ -22,6 +23,9 @@ package state
 		[Embed(source = "../../res/points.png")] private static var pointsChessPic:Class;
 		[Embed(source = "../../res/back.png")] private static var bgChessPic:Class;
 		[Embed(source = "../../res/cursor_new.png")] private static var cursorPic:Class;
+		[Embed(source = "../../res/exchange.png")] private static var cursorExchangePic:Class;
+		[Embed(source = "../../res/fireCracker.png")] private static var cursorFirePic:Class;
+		[Embed(source = "../../res/bomb.png")] private static var cursorBombPic:Class;
 		private var _backGroundArray:Array = new Array();
 		private var _chessArray:Array = new Array();
 		private var _chessAllArray:Array = new Array();
@@ -35,12 +39,6 @@ package state
 		public static var ChessPointsFlag_Green:int = 2;
 		public static var ChessPointsFlag_Red:int = 3;
 		public static var ChessPointsFlag_Yellow:int = 4;
-		
-		public var openListVector:Vector.< AStarData > = new Vector.< AStarData >;
-		public var closeListVector :Vector.< AStarData > = new Vector.< AStarData >;
-		
-		public var arrayOpen:Array = new Array();
-		public var arrayClose:Array = new Array();
 		
 		public static var RANDOM_CHESS_COUNTS:uint = 3;
 		
@@ -69,6 +67,10 @@ package state
 		
 		private var _gaming:Boolean = true;
 		
+		private var _currentToolType:uint = ToolsDefine.TOOLS_TYPE_NONE;
+		
+		private var _objCursorType:Object = new Object();
+		
 		public function GameStartState() 
 		{
 			
@@ -77,6 +79,11 @@ package state
 		override public function create():void
 		{
 			super.create();
+			
+			_objCursorType[ToolsDefine.TOOLS_TYPE_NONE] = cursorPic;
+			_objCursorType[ToolsDefine.TOOLS_TYPE_EXCHANGE] = cursorExchangePic;
+			_objCursorType[ToolsDefine.TOOLS_TYPE_FIRE_CRACK] = cursorFirePic;
+			_objCursorType[ToolsDefine.TOOLS_TYPE_BOMB] = cursorBombPic;
 			
 			_flagArray.push( ChessDefine.FLAG_VERTICAL );
 			_flagArray.push( ChessDefine.FLAG_HORIZONTAL );
@@ -296,33 +303,33 @@ package state
 			{
 				if ( _findChess.isChessExist() == true )
 				{
-					if ( _currentChess )
+					var needChoose:Boolean = true;
+					if ( _currentToolType == ToolsDefine.TOOLS_TYPE_EXCHANGE )
 					{
-						_currentChess.chessChosen( false );	
+						needChoose = useExchangeTools( _findChess );
 					}
-					_findChess.visible = true;
-					_currentChess = _findChess;
-					_currentChess.chessChosen( true );	
+					else if( _currentToolType == ToolsDefine.TOOLS_TYPE_NONE )
+					{
+						if ( _currentChess )
+						{
+							_currentChess.chessChosen( false );	
+						}
+					}
+					if ( needChoose )
+					{
+						_findChess.visible = true;
+						_currentChess = _findChess;
+						_currentChess.chessChosen( true );	
+					}	
 				}
 				else
 				{
-					if ( _currentChess )
+					if ( _currentChess && ( _currentToolType == ToolsDefine.TOOLS_TYPE_NONE ))
 					{
 						GlobalChessStepProcessing.getIns().clear();
 						var res:uint = _AStarAlgLogic.AStarAlg( _currentChess, _findChess );
-						if ( res == AStarResult.ASTAR_RESULT_FindPath )
-						{
-							//arrayPath
-						}
-						//var canChessMoveTo:Boolean = false;
-						//canChessMoveTo = requireChessMoveTo( _findChess );
-						
 						var canChessMoveTo:Boolean = GlobalChessStepProcessing.getIns().arrayProcessChess.length > 1;
 						initAllChessObjDirection();
-						//todo
-						if ( canChessMoveTo )
-						{
-						}
 					}
 					else
 					{
@@ -338,33 +345,34 @@ package state
 				if ( _tickNumber >= _tickConstNumber )
 				{
 					_tickNumber -= _tickConstNumber;
-					//var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
 					var _findChess:ChessPoint = GlobalChessStepProcessing.getIns().removeLastChess(_currentChess.getChessColor());
 					
 					if ( _findChess && arrayLength == 1 )
 					{
 						_findChess.setChessColor ( _currentChess.getChessColor() );
 			
-						var flag:int = getRemovableFlag( _findChess );
-						if ( flag >= ChessDefine.FLAG_VERTICAL )
-						{
-							removeFlag( flag, _findChess );
-						}
-						else
-						{
-							
-							var randomRest:uint = random3Chesses();	
-							if ( randomRest <= RANDOM_CHESS_COUNTS )
-							{
-								_gaming = false;
-							}
-							
-						}
-						_currentChess = null;
+						checkChessRemovable( _findChess );
 					}
 				}
 				_tickNumber += FlxG.elapsed;	
 			}
+		}
+		private function checkChessRemovable( dstChess:ChessPoint ):void
+		{
+			var flag:int = getRemovableFlag( dstChess );
+			if ( flag >= ChessDefine.FLAG_VERTICAL )
+			{
+				removeFlag( flag, dstChess );
+			}
+			else
+			{
+				var randomRest:uint = random3Chesses();	
+				if ( randomRest <= RANDOM_CHESS_COUNTS )
+				{
+					_gaming = false;
+				}
+			}
+			_currentChess = null;
 		}
 		private function initAllChessObjDirection():void
 		{
@@ -390,11 +398,62 @@ package state
 			}
 			else
 			{
-				checkMousePress();
-				replayStepProcessing();	
+				if ( FlxG.keys.justReleased("ESCAPE"))
+				{
+					changeTools( ToolsDefine.TOOLS_TYPE_NONE );
+				}
+				else if ( FlxG.keys.justReleased("C"))
+				{
+					changeTools( ToolsDefine.TOOLS_TYPE_EXCHANGE );
+				}
+				else
+				{
+					checkMousePress();
+					replayStepProcessing();		
+				}
 			}
 		}
-		
+
+		private function changeTools( type:uint ):void
+		{
+			var obj:Class = _objCursorType[type];
+			if ( obj != null )
+			{
+				_cursor.loadGraphic( obj, true, true );
+			}
+			if ( _currentChess )
+			{
+				_currentChess.chessChosen( false );
+				_currentChess = null;
+			}
+			_currentToolType = type;
+		}
+		private function useExchangeTools( dstChess:ChessPoint ):Boolean
+		{
+			var resExchange:Boolean = true;
+			if ( _currentChess )
+			{
+				var currColor:uint = _currentChess.getChessColor()
+				var dstColor:uint = dstChess.getChessColor()
+				_currentChess.setChessColor( dstColor );
+				dstChess.setChessColor( currColor );
+				_currentChess.chessChosen( false );
+				dstChess.chessChosen( false );
+				checkChessRemovable( _currentChess );
+				checkChessRemovable( dstChess );
+				resExchange = false;
+				changeTools( ToolsDefine.TOOLS_TYPE_NONE );
+			}
+			return resExchange;
+		}
+		private function useFireCrack( indexX:int, indexY:int ):void
+		{
+			
+		}
+		private function useBomb( indexX:int, indexY:int ):void
+		{
+			
+		}
 		override public function destroy():void
 		{
 			super.destroy();

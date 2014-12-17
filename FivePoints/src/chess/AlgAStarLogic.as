@@ -93,7 +93,7 @@ package chess
 				arrayOpen.splice( index, 1 );
 			}
 		}
-		private function nearChessProcess( starData:AStarData, targetChessPt:ChessPoint )
+		private function nearChessProcess( starData:AStarData, targetChessPt:ChessPoint ):void
 		{
 			var currentChess:ChessPoint = starData.chessPt
 			if ( currentChess )
