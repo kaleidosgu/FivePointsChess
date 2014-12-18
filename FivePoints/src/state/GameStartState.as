@@ -308,6 +308,16 @@ package state
 					{
 						needChoose = useExchangeTools( _findChess );
 					}
+					else if ( _currentToolType == ToolsDefine.TOOLS_TYPE_FIRE_CRACK )
+					{
+						useFireCrack( _findChess );
+						needChoose = false;
+					}
+					else if ( _currentToolType == ToolsDefine.TOOLS_TYPE_BOMB )
+					{
+						useBomb( _findChess );
+						needChoose = false;
+					}
 					else if( _currentToolType == ToolsDefine.TOOLS_TYPE_NONE )
 					{
 						if ( _currentChess )
@@ -406,6 +416,14 @@ package state
 				{
 					changeTools( ToolsDefine.TOOLS_TYPE_EXCHANGE );
 				}
+				else if ( FlxG.keys.justReleased("D"))
+				{
+					changeTools( ToolsDefine.TOOLS_TYPE_FIRE_CRACK );
+				}
+				else if ( FlxG.keys.justReleased("E"))
+				{
+					changeTools( ToolsDefine.TOOLS_TYPE_BOMB );
+				}
 				else
 				{
 					checkMousePress();
@@ -446,13 +464,56 @@ package state
 			}
 			return resExchange;
 		}
-		private function useFireCrack( indexX:int, indexY:int ):void
+		private function destroyChessInArray( dstChess:ChessPoint, arrayDir:Array ):Boolean
 		{
-			
+			var useRes:Boolean = false;
+			var crackChessArray:Array = new Array();
+			crackChessArray.push( dstChess );
+			for each( var chessDir:uint in arrayDir )
+			{
+				crackChessArray.push( dstChess.GetChessWithDirection( chessDir ) );
+			}
+			var crackCounts:uint = 0;
+			for each( var crackElement:ChessPoint in crackChessArray )
+			{
+				if ( crackElement != null )
+				{
+					if ( crackElement.isChessExist())
+					{
+						crackCounts++;
+					}
+					crackElement.setChessExist( false );
+					crackElement.chessChosen( false );
+				}
+			}
+			if ( crackCounts > 0 )
+			{
+				useRes = true;
+			}
+			changeTools( ToolsDefine.TOOLS_TYPE_NONE );
+			return useRes;
 		}
-		private function useBomb( indexX:int, indexY:int ):void
+		private function useFireCrack( dstChess:ChessPoint ):Boolean
 		{
-			
+			var arrayDir:Array = new Array();
+			arrayDir.push (ChessDefine.DIRECTION_EAST);
+			arrayDir.push (ChessDefine.DIRECTION_WEST);
+			var res:Boolean = destroyChessInArray( dstChess, arrayDir );
+			return res;
+		}
+		private function useBomb( dstChess:ChessPoint ):Boolean
+		{
+			var arrayDir:Array = new Array();
+			arrayDir.push (ChessDefine.DIRECTION_EAST);
+			arrayDir.push (ChessDefine.DIRECTION_WEST);
+			arrayDir.push (ChessDefine.DIRECTION_SOUTH);
+			arrayDir.push (ChessDefine.DIRECTION_NORTH);
+			arrayDir.push (ChessDefine.DIRECTION_NORTH_EAST);
+			arrayDir.push (ChessDefine.DIRECTION_NORTH_WEST);
+			arrayDir.push (ChessDefine.DIRECTION_SOUTH_EAST);
+			arrayDir.push (ChessDefine.DIRECTION_SOUTH_WEST);
+			var res:Boolean = destroyChessInArray( dstChess, arrayDir );
+			return res;
 		}
 		override public function destroy():void
 		{
