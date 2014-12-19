@@ -71,6 +71,8 @@ package state
 		
 		private var _objCursorType:Object = new Object();
 		
+		private var previewChessArray:Array = new Array();
+		private var previewCounts:uint = 3;
 		public function GameStartState() 
 		{
 			
@@ -79,7 +81,6 @@ package state
 		override public function create():void
 		{
 			super.create();
-			
 			_objCursorType[ToolsDefine.TOOLS_TYPE_NONE] = cursorPic;
 			_objCursorType[ToolsDefine.TOOLS_TYPE_EXCHANGE] = cursorExchangePic;
 			_objCursorType[ToolsDefine.TOOLS_TYPE_FIRE_CRACK] = cursorFirePic;
@@ -123,10 +124,23 @@ package state
 			_cursor.y = FlxG.height / 2;
 			this.add( _cursor );
 			
-			//todo
-			random3Chesses();
 			//_gaming = false;
 			var endBool:Boolean = false;
+			buildPreviewChess();
+			processPreviewChess();
+			//todo
+			putPreviewColorToChess();
+		}
+		private function buildPreviewChess():void
+		{
+			for ( var preIndex:uint = 0; preIndex < previewCounts; preIndex++ )
+			{
+				var preViewChess:ChessPoint = new ChessPoint(0, 0, 0);
+				this.add( preViewChess );
+				preViewChess.x = 280;
+				preViewChess.y = preIndex * preViewChess.height ;
+				previewChessArray.push ( preViewChess ) ;
+			}
 		}
 		public function removeFlag( flag:uint, startChess:ChessPoint ):void
 		{
@@ -208,7 +222,7 @@ package state
 			}
 			return findChess;
 		}
-		private function random3Chesses( ):uint
+		private function putPreviewColorToChess( ):uint
 		{
 			var findArrayChess:Array = new Array();
 			for each( var findChess:ChessPoint in _chessAllArray )
@@ -221,18 +235,47 @@ package state
 				{
 				}
 			}
-			for ( var randomIndex:uint = 0; randomIndex < RANDOM_CHESS_COUNTS; randomIndex++ )
+			for each ( var previewChess:ChessPoint in previewChessArray )
 			{
 				var randomChess:ChessPoint = getRandomChessFromArray( findArrayChess );
 				if ( randomChess )
 				{
 					removeChessFromArray( randomChess, findArrayChess );	
 					randomChess.setChessExist( true );
-					var randomColor:uint = randomChessColor();
-					randomChess.setChessColor ( randomColor );
+					var previewChessColor:uint = previewChess.getChessColor();
+					randomChess.setChessColor ( previewChessColor );
 				}
 			}
+			processPreviewChess();
 			return findArrayChess.length;
+		}
+		private function processPreviewChess():void
+		{
+			var colorArray:Array = random3ChessColor();
+			setPreviewChessColor( colorArray );
+		}
+		private function random3ChessColor():Array
+		{
+			var arrayChessColor:Array = new Array();
+			for ( var ind:uint = 0; ind < previewCounts; ind++ )
+			{
+				var colorChess:uint = randomChessColor();
+				arrayChessColor.push( colorChess );
+			}
+			return arrayChessColor;
+		}
+		private function setPreviewChessColor( colorArray:Array ):void
+		{
+			var chessIndex:uint = 0;
+			for each( var chessPt:ChessPoint in previewChessArray )
+			{
+				if ( chessIndex < colorArray.length )
+				{
+					var color:uint = colorArray[chessIndex] as uint;
+					chessPt.setChessColor( color );
+				}
+				chessIndex++;
+			}
 		}
 		private function randomChessColor():uint
 		{
@@ -376,7 +419,7 @@ package state
 			}
 			else
 			{
-				var randomRest:uint = random3Chesses();	
+				var randomRest:uint = putPreviewColorToChess();	
 				if ( randomRest <= RANDOM_CHESS_COUNTS )
 				{
 					_gaming = false;
@@ -403,7 +446,7 @@ package state
 					_gaming = true;
 					_textGameOver.visible = false;
 					buildChessArray();
-					random3Chesses();
+					putPreviewColorToChess();
 				}
 			}
 			else
