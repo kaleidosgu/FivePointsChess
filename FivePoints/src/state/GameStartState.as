@@ -50,8 +50,12 @@ package state
 		private var _mouseDiffX:Number = 5;
 		private var _mouseDiffY:Number = 5;
 		private var _textNotify:FlxText = null;
+		private var _textMoney:FlxText = null;
 		private var _textGameOver:FlxText = null;
 		
+		private var _costCounts:uint = 0;
+		private var _eachScorePerCos:uint = 10;
+		private var _currentMoney:int = 0;
 		private var _colLength:uint = 9;
 		private var _rowLength:uint = 9;
 		
@@ -109,12 +113,16 @@ package state
 			}
 
 			_textNotify = new FlxText( 0, 300, 200, "Score is: 0" );
+			_textMoney = new FlxText( 130, 300, 200, "" );
 			_textGameOver = new FlxText( 80, 100, 200, "Game is Over" );
 			_textGameOver.size = 24;
 			_textGameOver.color = 0xff0000;
 			_textGameOver.visible = false;
 			add( _textGameOver );
 			add( _textNotify );
+			add( _textMoney );
+			
+			updateCost();
 			
 			buildChessArray();
 			
@@ -147,6 +155,18 @@ package state
 			var rmvCounts:uint = startChess.removeChessAndSelfByDirection( flag );
 			_removeCounts = _removeCounts + rmvCounts;
 			_textNotify.text = "Score is: " + _removeCounts ;
+			
+			_costCounts += rmvCounts;
+			updateCost();
+		}
+		private function updateCost():void
+		{
+			if ( _costCounts >= _eachScorePerCos )
+			{
+				_costCounts -= _eachScorePerCos;
+				_currentMoney++;
+			}
+			_textMoney.text = "Money is: " + _currentMoney;
 		}
 		public function getRemovableFlag( findChess:ChessPoint ):int
 		{
