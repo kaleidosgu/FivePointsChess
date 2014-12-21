@@ -223,13 +223,14 @@ package state
 			}
 			initAllChessObjDirection();
 			//_chessArray[0][0].setChessExist( true );
+			
+			//_chessArray[0][0].setChessExist( true );
 			/*
-			_chessArray[0][0].setChessExist( true );
-			_chessArray[0][1].setChessExist( true );
 			_chessArray[1][1].setChessExist( true );
 			_chessArray[2][1].setChessExist( true );
 			_chessArray[3][1].setChessExist( true );
 			_chessArray[4][1].setChessExist( true );
+			_chessArray[8][1].setChessExist( true );
 			*/
 			var endFun:Boolean = false;
 		}
@@ -276,6 +277,12 @@ package state
 					randomChess.setChessExist( true );
 					var previewChessColor:uint = previewChess.getChessColor();
 					randomChess.setChessColor ( previewChessColor );
+					
+					var flag:int = getRemovableFlag( randomChess );
+					if ( flag>= ChessDefine.FLAG_VERTICAL )
+					{
+						removeFlag( flag, randomChess );
+					}
 				}
 			}
 			processPreviewChess();
@@ -448,6 +455,7 @@ package state
 		private function checkChessRemovable( dstChess:ChessPoint ):void
 		{
 			var flag:int = getRemovableFlag( dstChess );
+			
 			if ( flag >= ChessDefine.FLAG_VERTICAL )
 			{
 				removeFlag( flag, dstChess );
