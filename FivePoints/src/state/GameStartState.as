@@ -30,6 +30,11 @@ package state
 		[Embed(source = "../../res/sound/pull.mp3")] private var pullSound:Class;
 		[Embed(source = "../../res/sound/put.mp3")] private var putSound:Class;
 		[Embed(source = "../../res/sound/move.mp3")] private var moveSound:Class;
+		[Embed(source = "../../res/sound/getpoint.mp3")] private var getScoreSound:Class;
+		[Embed(source = "../../res/sound/bomb.mp3")] private var bombSfx:Class;
+		[Embed(source = "../../res/sound/firecrack.mp3")] private var fireCrackSfx:Class;
+		
+		
 		
 		private var _backGroundArray:Array = new Array();
 		private var _chessArray:Array = new Array();
@@ -160,6 +165,8 @@ package state
 			var rmvCounts:uint = startChess.removeChessAndSelfByDirection( flag );
 			_removeCounts = _removeCounts + rmvCounts;
 			_textNotify.text = "Score is: " + _removeCounts ;
+			
+			FlxG.play( getScoreSound );
 			
 			_costCounts += rmvCounts;
 			updateCost();
@@ -570,6 +577,8 @@ package state
 			arrayDir.push (ChessDefine.DIRECTION_EAST);
 			arrayDir.push (ChessDefine.DIRECTION_WEST);
 			var res:Boolean = destroyChessInArray( dstChess, arrayDir );
+			FlxG.play( fireCrackSfx );
+			changeTools( ToolsDefine.TOOLS_TYPE_NONE );
 			return res;
 		}
 		private function useBomb( dstChess:ChessPoint ):Boolean
@@ -584,6 +593,8 @@ package state
 			arrayDir.push (ChessDefine.DIRECTION_SOUTH_EAST);
 			arrayDir.push (ChessDefine.DIRECTION_SOUTH_WEST);
 			var res:Boolean = destroyChessInArray( dstChess, arrayDir );
+			FlxG.play( bombSfx );
+			changeTools( ToolsDefine.TOOLS_TYPE_NONE );
 			return res;
 		}
 		override public function destroy():void
