@@ -26,6 +26,11 @@ package state
 		[Embed(source = "../../res/exchange.png")] private static var cursorExchangePic:Class;
 		[Embed(source = "../../res/fireCracker.png")] private static var cursorFirePic:Class;
 		[Embed(source = "../../res/bomb.png")] private static var cursorBombPic:Class;
+		
+		[Embed(source = "../../res/sound/pull.mp3")] private var pullSound:Class;
+		[Embed(source = "../../res/sound/put.mp3")] private var putSound:Class;
+		[Embed(source = "../../res/sound/move.mp3")] private var moveSound:Class;
+		
 		private var _backGroundArray:Array = new Array();
 		private var _chessArray:Array = new Array();
 		private var _chessAllArray:Array = new Array();
@@ -393,6 +398,7 @@ package state
 						_findChess.visible = true;
 						_currentChess = _findChess;
 						_currentChess.chessChosen( true );	
+						FlxG.play( pullSound );
 					}	
 				}
 				else
@@ -403,6 +409,7 @@ package state
 						var res:uint = _AStarAlgLogic.AStarAlg( _currentChess, _findChess );
 						var canChessMoveTo:Boolean = GlobalChessStepProcessing.getIns().arrayProcessChess.length > 1;
 						initAllChessObjDirection();
+						FlxG.play( putSound );
 					}
 					else
 					{
@@ -426,6 +433,7 @@ package state
 			
 						checkChessRemovable( _findChess );
 					}
+					FlxG.play( moveSound );
 				}
 				_tickNumber += FlxG.elapsed;	
 			}

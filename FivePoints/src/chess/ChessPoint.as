@@ -204,6 +204,11 @@ package chess
 		public function setChessExist( exist:Boolean ):void
 		{
 			this.visible = exist;
+			if ( exist == false )
+			{
+				this.x = _originalPosX;
+				this.y = _originalPosY;
+			}
 		}
 		public function setChessDirectionChess( chessArray:Array ):void
 		{
