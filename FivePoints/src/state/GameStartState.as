@@ -28,6 +28,7 @@ package state
 		[Embed(source = "../../res/bomb.png")] private static var cursorBombPic:Class;
 		
 		[Embed(source = "../../res/sound/pull.mp3")] private var pullSound:Class;
+		[Embed(source = "../../res/sound/deny.mp3")] private var denyToolsSound:Class;
 		[Embed(source = "../../res/sound/put.mp3")] private var putSound:Class;
 		[Embed(source = "../../res/sound/move.mp3")] private var moveSound:Class;
 		[Embed(source = "../../res/sound/getpoint.mp3")] private var getScoreSound:Class;
@@ -65,7 +66,7 @@ package state
 		
 		private var _costCounts:uint = 0;
 		private var _eachScorePerCos:uint = 10;
-		private var _currentMoney:int = 0;
+		private var _currentMoney:int = 1;
 		private var _colLength:uint = 9;
 		private var _rowLength:uint = 9;
 		
@@ -87,6 +88,21 @@ package state
 		
 		private var previewChessArray:Array = new Array();
 		private var previewCounts:uint = 3;
+		
+		private var tools_exchange:FlxSprite = null;
+		private var tools_fireCrack:FlxSprite = null;
+		private var tools_Bomb:FlxSprite = null;
+		
+		private var txt_tool_ex:FlxText = null;
+		private var txt_tool_fc:FlxText = null;
+		private var txt_tool_bb:FlxText = null;
+		
+		private var costExchange:uint = 1;
+		private var costFirecrack:uint = 2;
+		private var costBomb:uint = 3;
+		
+		private var costObjectContainer:Object = new Object();
+		
 		public function GameStartState() 
 		{
 			
@@ -95,6 +111,11 @@ package state
 		override public function create():void
 		{
 			super.create();
+			
+			costObjectContainer[ToolsDefine.TOOLS_TYPE_EXCHANGE] = costExchange;
+			costObjectContainer[ToolsDefine.TOOLS_TYPE_FIRE_CRACK] = costFirecrack;
+			costObjectContainer[ToolsDefine.TOOLS_TYPE_BOMB] = costBomb;
+			
 			_objCursorType[ToolsDefine.TOOLS_TYPE_NONE] = cursorPic;
 			_objCursorType[ToolsDefine.TOOLS_TYPE_EXCHANGE] = cursorExchangePic;
 			_objCursorType[ToolsDefine.TOOLS_TYPE_FIRE_CRACK] = cursorFirePic;
@@ -148,6 +169,20 @@ package state
 			processPreviewChess();
 			//todo
 			putPreviewColorToChess();
+			
+			tools_exchange 	= new FlxSprite(285, 100, cursorExchangePic);
+			this.add( tools_exchange );
+			tools_fireCrack	= new FlxSprite(280, 150, cursorFirePic);
+			this.add( tools_fireCrack );
+			tools_Bomb 		= new FlxSprite(280, 200, cursorBombPic);
+			this.add( tools_Bomb );
+			
+			txt_tool_ex = new FlxText( 275, 117, 50, "[c] x " + costExchange );
+			this.add( txt_tool_ex );
+			txt_tool_fc = new FlxText( 275, 172, 50, "[d] x " + costFirecrack );
+			this.add( txt_tool_fc );
+			txt_tool_bb = new FlxText( 275, 222, 50, "[e] x " + costBomb );
+			this.add( txt_tool_bb );
 		}
 		private function buildPreviewChess():void
 		{
@@ -169,15 +204,25 @@ package state
 			FlxG.play( getScoreSound );
 			
 			_costCounts += rmvCounts;
-			updateCost();
+			removeFlagCalcMoney();
 		}
-		private function updateCost():void
+		private function removeFlagCalcMoney():void
 		{
 			if ( _costCounts >= _eachScorePerCos )
 			{
 				_costCounts -= _eachScorePerCos;
 				_currentMoney++;
-			}
+			}	
+			updateCost();
+		}
+		private function useToolsCostMoney( toolsType:uint ):void
+		{
+			var cost:uint = costObjectContainer[toolsType];
+			_currentMoney -= cost;
+			updateCost();
+		}
+		private function updateCost():void
+		{
 			_textMoney.text = "Money is: " + _currentMoney;
 		}
 		public function getRemovableFlag( findChess:ChessPoint ):int
@@ -392,13 +437,11 @@ package state
 					}
 					else if ( _currentToolType == ToolsDefine.TOOLS_TYPE_FIRE_CRACK )
 					{
-						useFireCrack( _findChess );
-						needChoose = false;
+						needChoose = useFireCrack( _findChess );
 					}
 					else if ( _currentToolType == ToolsDefine.TOOLS_TYPE_BOMB )
 					{
-						useBomb( _findChess );
-						needChoose = false;
+						needChoose = useBomb( _findChess );
 					}
 					else if( _currentToolType == ToolsDefine.TOOLS_TYPE_NONE )
 					{
@@ -413,7 +456,7 @@ package state
 						_currentChess = _findChess;
 						_currentChess.chessChosen( true );	
 						FlxG.play( pullSound );
-					}	
+					}
 				}
 				else
 				{
@@ -532,21 +575,43 @@ package state
 			}
 			_currentToolType = type;
 		}
+		private function checkCostEnoughForTools( toolsType:uint ):Boolean
+		{
+			var canCost:Boolean = false;
+			var costTools:uint = costObjectContainer[toolsType];
+			if ( _currentMoney >= costTools && costTools > 0 )
+			{
+				canCost = true;
+			}
+			else
+			{
+				FlxG.play(denyToolsSound);
+			}
+			return canCost;
+		}
 		private function useExchangeTools( dstChess:ChessPoint ):Boolean
 		{
 			var resExchange:Boolean = true;
-			if ( _currentChess )
+			if ( checkCostEnoughForTools( ToolsDefine.TOOLS_TYPE_EXCHANGE ) )
 			{
-				var currColor:uint = _currentChess.getChessColor()
-				var dstColor:uint = dstChess.getChessColor()
-				_currentChess.setChessColor( dstColor );
-				dstChess.setChessColor( currColor );
-				_currentChess.chessChosen( false );
-				dstChess.chessChosen( false );
-				checkChessRemovable( _currentChess );
-				checkChessRemovable( dstChess );
+				if ( _currentChess )
+				{
+					var currColor:uint = _currentChess.getChessColor()
+					var dstColor:uint = dstChess.getChessColor()
+					_currentChess.setChessColor( dstColor );
+					dstChess.setChessColor( currColor );
+					_currentChess.chessChosen( false );
+					dstChess.chessChosen( false );
+					checkChessRemovable( _currentChess );
+					checkChessRemovable( dstChess );
+					resExchange = false;
+					useToolsCostMoney( _currentToolType );
+					changeTools( ToolsDefine.TOOLS_TYPE_NONE );	
+				}
+			}
+			else
+			{
 				resExchange = false;
-				changeTools( ToolsDefine.TOOLS_TYPE_NONE );
 			}
 			return resExchange;
 		}
@@ -581,28 +646,46 @@ package state
 		}
 		private function useFireCrack( dstChess:ChessPoint ):Boolean
 		{
-			var arrayDir:Array = new Array();
-			arrayDir.push (ChessDefine.DIRECTION_EAST);
-			arrayDir.push (ChessDefine.DIRECTION_WEST);
-			var res:Boolean = destroyChessInArray( dstChess, arrayDir );
-			FlxG.play( fireCrackSfx );
-			changeTools( ToolsDefine.TOOLS_TYPE_NONE );
+			var res:Boolean = true;
+			if ( checkCostEnoughForTools( ToolsDefine.TOOLS_TYPE_FIRE_CRACK ) )
+			{
+				var arrayDir:Array = new Array();
+				arrayDir.push (ChessDefine.DIRECTION_EAST);
+				arrayDir.push (ChessDefine.DIRECTION_WEST);
+				res = destroyChessInArray( dstChess, arrayDir );
+				FlxG.play( fireCrackSfx );
+				useToolsCostMoney( _currentToolType );
+				changeTools( ToolsDefine.TOOLS_TYPE_NONE );
+			}
+			else
+			{
+				res = false;
+			}
 			return res;
 		}
 		private function useBomb( dstChess:ChessPoint ):Boolean
 		{
-			var arrayDir:Array = new Array();
-			arrayDir.push (ChessDefine.DIRECTION_EAST);
-			arrayDir.push (ChessDefine.DIRECTION_WEST);
-			arrayDir.push (ChessDefine.DIRECTION_SOUTH);
-			arrayDir.push (ChessDefine.DIRECTION_NORTH);
-			arrayDir.push (ChessDefine.DIRECTION_NORTH_EAST);
-			arrayDir.push (ChessDefine.DIRECTION_NORTH_WEST);
-			arrayDir.push (ChessDefine.DIRECTION_SOUTH_EAST);
-			arrayDir.push (ChessDefine.DIRECTION_SOUTH_WEST);
-			var res:Boolean = destroyChessInArray( dstChess, arrayDir );
-			FlxG.play( bombSfx );
-			changeTools( ToolsDefine.TOOLS_TYPE_NONE );
+			var res:Boolean = false;
+			if ( checkCostEnoughForTools( ToolsDefine.TOOLS_TYPE_BOMB ) )
+			{
+				var arrayDir:Array = new Array();
+				arrayDir.push (ChessDefine.DIRECTION_EAST);
+				arrayDir.push (ChessDefine.DIRECTION_WEST);
+				arrayDir.push (ChessDefine.DIRECTION_SOUTH);
+				arrayDir.push (ChessDefine.DIRECTION_NORTH);
+				arrayDir.push (ChessDefine.DIRECTION_NORTH_EAST);
+				arrayDir.push (ChessDefine.DIRECTION_NORTH_WEST);
+				arrayDir.push (ChessDefine.DIRECTION_SOUTH_EAST);
+				arrayDir.push (ChessDefine.DIRECTION_SOUTH_WEST);
+				res = destroyChessInArray( dstChess, arrayDir );
+				FlxG.play( bombSfx );
+				useToolsCostMoney( _currentToolType );
+				changeTools( ToolsDefine.TOOLS_TYPE_NONE );	
+			}
+			else
+			{
+				
+			}
 			return res;
 		}
 		override public function destroy():void
