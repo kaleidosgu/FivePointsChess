@@ -147,9 +147,8 @@ package state
 			_textMoney = new FlxText( 130, 300, 200, "" );
 			_textGameOver = new FlxText( 80, 100, 200, "Game is Over" );
 			_textGameOver.size = 24;
-			_textGameOver.color = 0xff0000;
-			_textGameOver.visible = false;
-			add( _textGameOver );
+			_textGameOver.color = 0xffff16;
+			//_textGameOver.visible = false;
 			add( _textNotify );
 			add( _textMoney );
 			
@@ -168,8 +167,10 @@ package state
 			buildPreviewChess();
 			processPreviewChess();
 			//todo
-			putPreviewColorToChess();
-			
+			for ( var index:uint = 0; index < 25; index++ )
+			{
+				putPreviewColorToChess();	
+			}
 			tools_exchange 	= new FlxSprite(285, 100, cursorExchangePic);
 			this.add( tools_exchange );
 			tools_fireCrack	= new FlxSprite(280, 150, cursorFirePic);
@@ -183,6 +184,8 @@ package state
 			this.add( txt_tool_fc );
 			txt_tool_bb = new FlxText( 275, 222, 50, "[e] x " + costBomb );
 			this.add( txt_tool_bb );
+			
+			add( _textGameOver );
 		}
 		private function buildPreviewChess():void
 		{
@@ -506,7 +509,7 @@ package state
 			else
 			{
 				var randomRest:uint = putPreviewColorToChess();	
-				if ( randomRest <= RANDOM_CHESS_COUNTS )
+				if ( randomRest < RANDOM_CHESS_COUNTS )
 				{
 					_gaming = false;
 				}
